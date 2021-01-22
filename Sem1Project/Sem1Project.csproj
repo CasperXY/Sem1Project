@@ -10,7 +10,9 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Content\bumpSound.wav" />
     <None Remove="Content\losingSong.mp3" />
+    <None Remove="Content\winSong.wav" />
     <None Remove="Icon.ico" />
     <None Remove="Icon.bmp" />
   </ItemGroup>

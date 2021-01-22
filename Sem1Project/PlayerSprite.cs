@@ -8,27 +8,24 @@ namespace Sem1Project
 {
     class PlayerSprite : Sprite
     {
-        bool jumpIsPressed, kickIsPressed, punchIsPressed, blastIsPressed;
-
-         public playerStates currentState = playerStates.falling;
-        SoundEffect hitSound, jumpSound;
-        const float jumpSpeed = 5f;
-        const float walkSpeed = 175f;
-        public int lives = 3;
-        public bool dead = false;
-        public PlayerSprite(Texture2D newSpriteSheet, Texture2D newCollisionTxr, Vector2 newLocation, SoundEffect newHitSound, SoundEffect newJumpSound ) : base(newSpriteSheet, newCollisionTxr, newLocation)
+        bool jumpIsPressed, kickIsPressed, punchIsPressed, blastIsPressed; //Setting up to declare if a button has been pressed
+        public playerStates currentState = playerStates.falling; //Setting up the starting value of the players current state
+        SoundEffect hitSound, jumpSound; //Naming the Sound Effect variables
+        const float jumpSpeed = 5f; //Declairing the jump height
+        const float walkSpeed = 175f; //Declairing the Walk/Fly height
+        public bool dead = false; //Setting the starting value of dead
+        public PlayerSprite(Texture2D newSpriteSheet, Texture2D newCollisionTxr, Vector2 newLocation, SoundEffect newHitSound, SoundEffect newJumpSound) : base(newSpriteSheet, newCollisionTxr, newLocation)
         {
-            hitSound = newHitSound;
-            jumpSound = newJumpSound;
-            spriteOrigin = new Vector2(0.5f, 1f);
-            spriteScale = new Vector2(2, 2);
-            isColliding = true;
-            drawCollision = false;
+            hitSound = newHitSound; //Giving hit sound a value
+            jumpSound = newJumpSound; //Giving jump sound a value
+            spriteOrigin = new Vector2(0.5f, 1f); //Controlling the starting point of the image being used
+            spriteScale = new Vector2(2, 2);//Controlling the size of the image
+            isColliding = true;//Setting collision to true
 
             collisionInsetMin = new Vector2(0.25f, 0.3f);
             collisionInsetMax = new Vector2(0.25f, 0.03f);
+            frameTime = 0.2f; //Controlling the frame time
 
-            frameTime = 0.23f;
 
             // idle
             animations = new List<List<Rectangle>>();
@@ -71,20 +68,8 @@ namespace Sem1Project
             animations[5].Add(new Rectangle(266, 130, 48, 50));
             animations[5].Add(new Rectangle(330, 130, 48, 50));
             animations[5].Add(new Rectangle(330, 130, 48, 50));
-
-
-
-
-
+            
             jumpIsPressed = false;
-
-
-
-
-
-
-
-
         }
         
 
@@ -92,17 +77,16 @@ namespace Sem1Project
         public void Update(GameTime gameTime, List<PlatformSprite> platforms, List<EnemySprite>enemySprites, List<PlatformSpriteRotate>rotate)
         {
             KeyboardState keyboardState = Keyboard.GetState();
-            GamePadState gamePadState = GamePad.GetState(PlayerIndex.One);
             //Movement
-            
-            if (!jumpIsPressed && currentState == playerStates.idle && (keyboardState.IsKeyDown(Keys.W) || gamePadState.IsButtonDown(Buttons.A)))
+
+            if (!jumpIsPressed && currentState == playerStates.idle && (keyboardState.IsKeyDown(Keys.W)))
             {
                 jumpIsPressed = true;
                 currentState = playerStates.jumping;
                 spriteVelocity.Y -= jumpSpeed;
                 jumpSound.Play();
             }
-            else if (jumpIsPressed && currentState != playerStates.jumping && currentState != playerStates.falling && !(keyboardState.IsKeyDown(Keys.W) || gamePadState.IsButtonDown(Buttons.A)))
+            else if (jumpIsPressed && currentState != playerStates.jumping && currentState != playerStates.falling && !(keyboardState.IsKeyDown(Keys.W)))
             {
                 jumpIsPressed = false;
             }
@@ -113,24 +97,19 @@ namespace Sem1Project
                 spriteVelocity.Y += jumpSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
             }
 
-            if ((keyboardState.IsKeyDown(Keys.A) || keyboardState.IsKeyDown(Keys.Left) || gamePadState.IsButtonDown(Buttons.DPadLeft)) && currentState != playerStates.kiBlast )
+            if ((keyboardState.IsKeyDown(Keys.A) || keyboardState.IsKeyDown(Keys.Left)) && currentState != playerStates.kiBlast && currentState != playerStates.kicking)
             {
                 currentState = playerStates.walking;
                 spriteVelocity.X = -walkSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
                 flipped = true;
-
-
             }
 
-            else if ((keyboardState.IsKeyDown(Keys.D) || keyboardState.IsKeyDown(Keys.Right) || gamePadState.IsButtonDown(Buttons.DPadRight)) && currentState != playerStates.kiBlast)
+            else if ((keyboardState.IsKeyDown(Keys.D) || keyboardState.IsKeyDown(Keys.Right)) && currentState != playerStates.kiBlast && currentState != playerStates.kicking)
             {
                 currentState = playerStates.walking;
 
                 spriteVelocity.X = walkSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
                 flipped = false;
-
-
-
             }
             else if (currentState == playerStates.walking && keyboardState.IsKeyDown(Keys.W)) 
             {
@@ -142,7 +121,6 @@ namespace Sem1Project
             {
                 if (currentState == playerStates.walking) currentState = playerStates.idle;
                 spriteVelocity.X = 0;
-
             }
             if (jumpIsPressed && currentState == playerStates.walking) 
             {
@@ -155,48 +133,42 @@ namespace Sem1Project
             if (currentState == playerStates.idle && spriteVelocity.Y >= 1f) 
             {
                 spriteVelocity.Y += jumpSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
-
             }
 
-            if (spritePos.Y > 810)
+            if (spritePos.Y > 810 && dead == false)
             {
                 dead = true;
                 hitSound.Play();
             }
 
-
-
-
             //Attacks
             //Blast
-            if (!blastIsPressed && keyboardState.IsKeyDown(Keys.Space) || gamePadState.IsButtonDown(Buttons.RightTrigger))
+            if (!blastIsPressed && keyboardState.IsKeyDown(Keys.Space))
             {
                 currentState = playerStates.kiBlast;
                 spriteVelocity.X = 0;
                 blastIsPressed = true;
-
-
             }
-            else if (blastIsPressed && !keyboardState.IsKeyDown(Keys.Space) && !gamePadState.IsButtonDown(Buttons.RightTrigger)) blastIsPressed = false;
+            else if (blastIsPressed && !keyboardState.IsKeyDown(Keys.Space)) blastIsPressed = false;
                  
             //Kick
-            if (!kickIsPressed && keyboardState.IsKeyDown(Keys.Q) || gamePadState.IsButtonDown(Buttons.X))
+            if (!kickIsPressed && keyboardState.IsKeyDown(Keys.Q))
             {
                 currentState = playerStates.kicking;
                 kickIsPressed = true;
             }
-            else if (kickIsPressed && !keyboardState.IsKeyDown(Keys.Q) && !gamePadState.IsButtonDown(Buttons.X)) kickIsPressed = false;
+            else if (kickIsPressed && !keyboardState.IsKeyDown(Keys.Q)) kickIsPressed = false;
             //Punch
-            if (!punchIsPressed && keyboardState.IsKeyDown(Keys.F) || gamePadState.IsButtonDown(Buttons.B))
+            if (!punchIsPressed && keyboardState.IsKeyDown(Keys.F))
             {
                 currentState = playerStates.punching;
                 punchIsPressed = true;
             }
-            else if (punchIsPressed && !keyboardState.IsKeyDown(Keys.F) && !gamePadState.IsButtonDown(Buttons.B)) punchIsPressed = false;
+            else if (punchIsPressed && !keyboardState.IsKeyDown(Keys.F)) punchIsPressed = false;
 
 
-
-            //Checking for collision
+           
+            //Checking for collision on the platforms sprites
             bool hasCollided = false;
 
             foreach (PlatformSprite platform in platforms)
@@ -207,8 +179,6 @@ namespace Sem1Project
                     while (checkCollision(platform)) spritePos.Y--;
                     spriteVelocity.Y = 0;
                     if (currentState == playerStates.jumping || currentState == playerStates.falling) currentState = playerStates.idle;
-
-
                 }
                 else if (checkCollisionAbove(platform))
                 {
@@ -216,7 +186,6 @@ namespace Sem1Project
                     while (checkCollision(platform)) spritePos.Y++;
                     spriteVelocity.Y = 0;
                     currentState = playerStates.falling;
-
                 }
 
                 if (checkCollisionLeft(platform))
@@ -232,7 +201,7 @@ namespace Sem1Project
                     spriteVelocity.X = 0;
                 }
             }
-
+            //Checking for collision on the rotated platform sprites
             foreach (PlatformSpriteRotate walls in rotate) 
             {
                 if (checkCollisionLeft(walls))
@@ -244,9 +213,6 @@ namespace Sem1Project
                         spritePos.X--;
                     }
                     if (currentState == playerStates.jumping || currentState == playerStates.falling) currentState = playerStates.idle;
-                    
-
-
                 }
                 if (checkCollisionRight(walls))
                 {
@@ -256,21 +222,31 @@ namespace Sem1Project
                         spritePos.X++;
                     }
                     if (currentState == playerStates.jumping || currentState == playerStates.falling) currentState = playerStates.idle;
-
-
                 }
-
-
-
-
+                if (checkCollisionAbove(walls))
+                {
+                    hasCollided = true;
+                    while (checkCollision(walls))
+                    {
+                        spritePos.X++;
+                    }
+                    if (currentState == playerStates.jumping || currentState == playerStates.falling) currentState = playerStates.idle;
+                }
+                if (checkCollisionBelow(walls))
+                {
+                    hasCollided = true;
+                    while (checkCollision(walls))
+                    {
+                        spritePos.X++;
+                    }
+                    if (currentState == playerStates.jumping || currentState == playerStates.falling) currentState = playerStates.idle;
+                }
             }
-
-
+            //Checking collision on the enemy sprites
             foreach (EnemySprite enemySprite in enemySprites) 
             {
                 if(!enemySprite.dead && checkCollision(enemySprite)) 
                 {
-
                     if (currentState == playerStates.kicking || currentState == playerStates.punching)
                     {
                         enemySprite.dead = true;
@@ -283,34 +259,28 @@ namespace Sem1Project
                         spriteVelocity.X = 0;
                         hitSound.Play();
                     }
-
                 }
-
-
-
-
             }
-
-
-
-
+            //Allowing the Animation not to continue to switch inbetween each other 
             if (currentState == playerStates.idle || currentState == playerStates.walking || currentState == playerStates.punching || currentState == playerStates.kicking) 
             {
                 spritePos.Y += 5f;
                 foreach (PlatformSprite platform in platforms)
                 {
-                    if (checkCollisionBelow(platform)) hasCollided = true;
+                    if (checkCollisionBelow(platform))
+                    {
+                        hasCollided = true;
+                    }
                 }
                 spritePos.Y -= 5f;
             }
-
-
-                if (!hasCollided && currentState != playerStates.falling && currentState != playerStates.kiBlast) currentState = playerStates.falling;
+            //Declairing the player as falling if in the air
+                if (!hasCollided && currentState != playerStates.falling && currentState != playerStates.kiBlast) currentState = playerStates.falling; 
                 if (currentState == playerStates.jumping && spriteVelocity.Y > 0) currentState = playerStates.falling;
-
-                if ((currentState == playerStates.falling || currentState == playerStates.jumping || currentState == playerStates.kiBlast || currentState == playerStates.punching || currentState == playerStates.kicking || currentState == playerStates.walking) && spriteVelocity.Y < 500f) spriteVelocity.Y += 5f * (float)gameTime.ElapsedGameTime.TotalSeconds;
-                spritePos += spriteVelocity;
-                
+            //Allowing the player to fall back to the platforms
+            if ((currentState == playerStates.falling || currentState == playerStates.jumping || currentState == playerStates.kiBlast || currentState == playerStates.punching || currentState == playerStates.kicking || currentState == playerStates.walking) && spriteVelocity.Y < 500f) spriteVelocity.Y += 5f * (float)gameTime.ElapsedGameTime.TotalSeconds; 
+                spritePos += spriteVelocity;//Allowing the player to move
+                //Controlling which animation is being used
                 switch (currentState) 
                 {
                    case playerStates.walking:
@@ -338,18 +308,13 @@ namespace Sem1Project
                         setAnim(0);
                         break;
                 }
+           //Restting the animation to idle
             if (currentState == playerStates.punching || currentState == playerStates.kiBlast || currentState == playerStates.kicking)
             {
                 if (currentFrame >= animations[currentAnim].Count - 1) currentState = playerStates.idle;
             }
-
-
-
-
-
-
         }
-
+        //Setting up player state variables
         public enum playerStates
         {
             idle, jumping, falling, walking, punching, kicking, kiBlast
